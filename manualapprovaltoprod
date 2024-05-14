@@ -1,0 +1,90 @@
+pipeline {
+    agent any
+    
+    parameters {
+        choice(name: 'ENVIRONMENT', choices: ['dev', 'qa', 'prod'], description: 'Select deployment environment')
+    }
+    
+    stages {
+        stage('Checkout') {
+            steps {
+                echo 'Checking out source code...'
+                // Add git checkout command here
+            }
+        }
+        stage('Build') {
+            steps {
+                echo 'Building the project...'
+                // Add build commands here
+            }
+        }
+        stage('Unit Test') {
+            steps {
+                echo 'Running unit tests...'
+                // Add unit test commands here
+            }
+        }
+        stage('Integration and Functional Tests') {
+            parallel {
+                stage('Integration Test') {
+                    steps {
+                        echo 'Running integration tests...'
+                        // Add integration test commands here
+                    }
+                }
+                stage('Functional Test') {
+                    steps {
+                        echo 'Running functional tests...'
+                        // Add functional test commands here
+                    }
+                }
+            }
+        }
+        stage('Deploy to Test') {
+            when {
+                expression { params.ENVIRONMENT != 'dev' }
+            }
+            steps {
+                echo "Deploying to ${params.ENVIRONMENT} environment..."
+                // Add deployment commands here for non-dev environments
+            }
+        }
+        stage('Manual Approval for Prod') {
+            when {
+                expression { params.ENVIRONMENT == 'prod' }
+            }
+            steps {
+                input 'Approve deployment to production?'
+            }
+        }
+        stage('Deploy to Prod') {
+            when {
+                allOf {
+                    expression { params.ENVIRONMENT == 'prod' }
+                    branch 'master' // Assuming you want to deploy from the master branch
+                }
+            }
+            steps {
+                echo 'Deploying to production environment...'
+                // Add deployment commands here for production environment
+            }
+        }
+        stage('Cleanup') {
+            steps {
+                echo 'Cleaning up...'
+                // Add cleanup commands here
+            }
+        }
+    }
+    
+    post {
+        failure {
+            echo 'Pipeline failed! Sending notification...'
+            // Add notification commands here
+        }
+        success {
+            echo 'Pipeline succeeded! Sending notification...'
+            // Add notification commands here
+        }
+    }
+}
