@@ -3,8 +3,6 @@ pipeline {
     
     parameters {
         choice(name: 'ENVIRONMENT', choices: ['dev', 'qa', 'prod'], description: 'Select deployment environment')
-
-
     }
     
     stages {
